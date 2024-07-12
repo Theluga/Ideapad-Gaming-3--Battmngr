@@ -43,6 +43,16 @@ To install `ig3mngr` you only need to download the script, put it in a directory
 	ig3mngr -s 0 -sc r0 
 
 ```
+## Sudo
+
+Since this requires sudo always , the dumb way to make it easier to use, is add the following line to your sudoers file
+
+```sh
+sudo visudo
+##add the next line to the end of the file
+$USER ALL=(ALL) NOPASSWD: /usr/bin/vantage
+```
+
 ## Contributing
 `ig3mngr` seem to be working fine on the supported device, but only because ACPI calls values are publicly known.
 
