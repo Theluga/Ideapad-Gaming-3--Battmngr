@@ -1,30 +1,27 @@
 #!/bin/bash
 #
-# Read/Set battery modes in lenovo ideapad 15are05 using acpi_call kernel module
+# Read/Set battery modes in lenovo ideapad 15ACH6 using acpi_call kernel module
 
-## Usage: battmngr [OPTION] MODE
+## Usage: ig3mngr [OPTION] MODE
 ## Options:
-##	-r, --read		read current battery mode
+##	-h, --help		usage help
 ##	-s, --set		set battery mode
-##	-rc, --read-charge	read current charge mode
 ##	-sc, --set-charge	set charge mode
 ## Battery modes:
-##	1	Intelligent Cooling
-##	2	Extreme Performance
-##	3	Battery Saving	
+##	0	Intelligent Cooling
+##	1	Extreme Performance
+##	2	Battery Saving	
 ##	
 ## Charge modes:
-##	1	Rapid Charge On
-##	2	Rapid Charge Off
-##	3	Battery Conservation On
-##	4	Battery Conservation Off		
+##	r1	Rapid Charge On
+##	r0	Rapid Charge Off
+##	b1	Battery Conservation On
+##	b0	Battery Conservation Off		
 ##
 ## Examples:
-## 	battmngr -r 
-## 	battmngr -s 1
-##	battmngr -rc
-##	battmngr -sc 1
-##	battmngr -s 1 -r -sc 4 -rc
+## 	ig3mngr -s 1
+##	ig3mngr -sc b1
+##	ig3mngr -s 0 -sc r0 
 
 
 #######################################
@@ -52,27 +49,25 @@ err(){
 usage(){
 	printf '%s\n'\
 	""\
-	"Usage: battmngr [OPTION...] MODE"\
+	"Usage: ig3mngr [OPTION...] MODE"\
 	"Options:"\
-	"        -r, --read             read current battery mode"\
+	"        -h, --help             usage help"\
 	"        -s, --set              set battery mode"\
-	"        -rc, --read-charge     read current charge mode"\
 	"        -sc, --set-charge      set charge mode"\
 	"Battery Modes:"\
-	"        1        Intelligent Cooling"\
-	"        2        Extreme Performance"\
-	"        3        Battery Saving"\
+	"        0       Intelligent Cooling"\
+	"        1        Extreme Performance"\
+	"        2        Battery Saving"\
 	"Charge modes:"\
-	"        1        Rapid Charge On"\
-	"        2        Rapid Charge Off"\
-	"        3        Battery Conservation On"\
-	"        4        Battery Conservation Off"\
+	"        r1       Rapid Charge On"\
+	"        r0       Rapid Charge Off"\
+	"        b1       Battery Conservation On"\
+	"        b0       Battery Conservation Off"\
+	"Note: turning Rapid Charge will disable Battery Conservation and vice-versa."\
 	"Examples:"\
-	"        battmngr -r "\
-	"        battmngr -s 1"\
-	"        battmngr -rc"\
-	"        battmngr -sc 1"\
-	"        battmngr -s 1 -r -sc 4 -rc"
+	"        ig3mngr -s 0"\
+	"        ig3mngr -sc b1"\
+	"        ig3mngr -sc b1 -r 0"
 }
 
 #######################################
@@ -88,12 +83,12 @@ function error(){
 	case $1 in
 
 		0)
-			err "Please provide a valid battery mode to set (only 1,2 and 3 are valid values)"
+			err "Please provide a valid battery mode to set (only 0, 1 and 2 are valid values)"
 			usage
 		;;
 		
 		1)
-			err "Please provide a valid battery charge mode to set (only 1,2,3 and 4 are valid values)"
+			err "Please provide a valid battery charge mode to set (only b0, b1, r0 and r1 are valid values)"
 			usage
 		;;
 
@@ -119,7 +114,7 @@ function error(){
 		;;
 
 		8)
-			err "Please specify an operation"
+			err "Help called!"
 			usage
 		;;
 		
@@ -135,7 +130,8 @@ function error(){
 			err "Unknown error"
 		;;
 	esac
-	
+	read_charge_operation
+	read_operation
 	exit 1
 }
 
@@ -178,7 +174,7 @@ function setup(){
 #   None
 #######################################
 function check_mode(){
-	echo '\_SB.PCI0.LPC0.EC0.SPMO' > /proc/acpi/call
+	echo '\_SB.PCI0.LPC0.EC0.GZ44' > /proc/acpi/call
 	check=$(cat /proc/acpi/call | cut -d '' -f1)
 
 	if ! (( $check == $1 )); then
@@ -200,7 +196,7 @@ function check_mode(){
 function check_charge_mode(){
 	# if we are checking rapid charge mode
 	if (( $1 == 0 )); then
-		echo '\_SB.PCI0.LPC0.EC0.QCHO' > /proc/acpi/call
+		echo '\_SB.PCI0.LPC0.EC0.FCGM' > /proc/acpi/call
 		check=$(cat /proc/acpi/call | cut -d '' -f1)
 		
 	# if we are checking battery conservation mode
@@ -229,21 +225,21 @@ function check_charge_mode(){
 function set_operation(){
 	case $1 in
 
-		1)
+		0)
 			# Intelligent Cooling 
-			echo '\_SB.PCI0.LPC0.EC0.VPC0.DYTC 0x000FB001' > /proc/acpi/call
+			echo '\_SB_.GZFD.WMAA 0 0x2C 2' > /proc/acpi/call
 			check_mode "0x0"
 		;;
 
-		2)
+		1)
 			# Extreme Performance 
- 			echo '\_SB.PCI0.LPC0.EC0.VPC0.DYTC 0x0012B001' > /proc/acpi/call
+ 			echo '\_SB_.GZFD.WMAA 0 0x2C 3' > /proc/acpi/call
  			check_mode "0x1"
 		;;
 
-		3)
+		2)
 			# Battery Saving
-			echo '\_SB.PCI0.LPC0.EC0.VPC0.DYTC 0x0013B001' > /proc/acpi/call
+			echo '\_SB_.GZFD.WMAA 0 0x2C 1' > /proc/acpi/call
 			check_mode "0x2"
 		;;
 
@@ -251,6 +247,7 @@ function set_operation(){
 			error 9
 		;;
 	esac
+
 }
 
 #######################################
@@ -265,25 +262,33 @@ function set_operation(){
 function set_charge_operation(){
 	case $1 in
 
-		1)
+		r1)
 			# Rapid Charge On
+			### deactivate the conservation mode
+			echo '\_SB.PCI0.LPC0.EC0.VPC0.SBMC 0x05' > /proc/acpi/call
+			check_charge_mode 1 "0x0"
+			### activate the rapid charge
 			echo '\_SB.PCI0.LPC0.EC0.VPC0.SBMC 0x07' > /proc/acpi/call
 			check_charge_mode 0 "0x1"
 		;;
 
-		2)
+		r0)
 			# Rapid Charge Off 
  			echo '\_SB.PCI0.LPC0.EC0.VPC0.SBMC 0x08' > /proc/acpi/call
  			check_charge_mode 0 "0x0"
 		;;
 
-		3)
+		b1)
 			# Battery Conservation On
+			### deactivate the rapid charge
+			echo '\_SB.PCI0.LPC0.EC0.VPC0.SBMC 0x08' > /proc/acpi/call
+ 			check_charge_mode 0 "0x0"
+ 			### activate the conservation mode
 			echo '\_SB.PCI0.LPC0.EC0.VPC0.SBMC 0x03' > /proc/acpi/call
 			check_charge_mode 1 "0x1"
 		;;
 		
-		4)
+		b0)
 			# Battery Conservation Off
 			echo '\_SB.PCI0.LPC0.EC0.VPC0.SBMC 0x05' > /proc/acpi/call
 			check_charge_mode 1 "0x0"
@@ -306,7 +311,7 @@ function set_charge_operation(){
 #   Print battery mode name on STDOUT
 #######################################
 function read_operation(){
-	echo '\_SB.PCI0.LPC0.EC0.SPMO' > /proc/acpi/call
+	echo '\_SB.PCI0.LPC0.EC0.GZ44' > /proc/acpi/call
 	check=$(cat /proc/acpi/call | cut -d '' -f1)
 
 	case $check in
@@ -341,7 +346,7 @@ function read_operation(){
 #######################################
 function read_charge_operation(){
 	# rapid charge check
-	echo '\_SB.PCI0.LPC0.EC0.QCHO' > /proc/acpi/call
+	echo '\_SB.PCI0.LPC0.EC0.FCGM' > /proc/acpi/call
 	check=$(cat /proc/acpi/call | cut -d '' -f1)
 
 	case $check in
@@ -384,11 +389,7 @@ function read_charge_operation(){
 check_sudo
 setup
 
-# check if an operation is specified
-if [ -z "$1" ]; then
-	error 8
-fi
-	
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -s|--set)  
@@ -402,7 +403,7 @@ while [[ "$#" -gt 0 ]]; do
 			fi
 			
 			# if the parameter is good, set param
-	  		if (($2 >= 0 && $2 <= 3));  then
+	  		if (($2 >= 0 && $2 <= 2));  then
 				set_operation $2
 				
 			# if it's not in the expected range calls error
@@ -418,24 +419,14 @@ while [[ "$#" -gt 0 ]]; do
         	shift
         	;;
         	
-        -r|--read) 
-        	# read mode
-		read_operation
-		shift
-		;;
-        	
         -sc|--set-charge)  
         	# set charge operation
         
 		# check if there is a parameter
 		if [ ! -z "$2" ]; then 
-			# if it's not numeric calls error
-			if ! [[ $2 =~ ^[0-9]+$ ]]; then
-				error 1
-			fi
-			
+						
 			# if the parameter is good, set param
-	  		if (($2 >= 0 && $2 <= 4));  then
+	  		if (($2 == r0 | $2 == r1 | $2 == b0 | $2 == b1));  then
 				set_charge_operation $2
 				
 			# if it's not in the expected range calls error
@@ -451,18 +442,18 @@ while [[ "$#" -gt 0 ]]; do
         	shift
         	;;
         	
-        -rc|--read-charge) 
-        	# read charge mode
-        	read_charge_operation
-        	shift
+        -h|--help)
+        	# help
+        	error 8
         	;;
-        	
         *) 
         	error 7
         	;;
     esac
-    
+
 done
+read_charge_operation
+read_operation
 exit 0
 
 
