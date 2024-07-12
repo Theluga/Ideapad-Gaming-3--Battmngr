@@ -50,7 +50,7 @@ Since this requires sudo always , the dumb way to make it easier to use, is add 
 ```sh
 sudo visudo
 ##add the next line to the end of the file
-$USER ALL=(ALL) NOPASSWD: /usr/bin/vantage
+$USER ALL=(ALL) NOPASSWD: /path/to/ig3mngr
 ```
 
 ## Contributing
