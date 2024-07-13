@@ -2,6 +2,9 @@
 #
 # Read/Set battery modes in lenovo ideapad 15ACH6 using acpi_call kernel module
 
+
+## call for sudo password to not need to call as sudo
+[ "$UID" -eq 0 ] || exec sudo bash "$0" "$@"
 ## Usage: ig3mngr [OPTION] MODE
 ## Options:
 ##	-h, --help		usage help
@@ -55,7 +58,7 @@ usage(){
 	"        -s, --set              set battery mode"\
 	"        -sc, --set-charge      set charge mode"\
 	"Battery Modes:"\
-	"        0       Intelligent Cooling"\
+	"        0        Intelligent Cooling"\
 	"        1        Extreme Performance"\
 	"        2        Battery Saving"\
 	"Charge modes:"\
@@ -122,9 +125,6 @@ function error(){
 			err "Unexpected error"
 		;;
 		
-		10) 	
-			err "Please invoke this script using sudo"
-		;;
 
 		*)
 			err "Unknown error"
@@ -133,21 +133,6 @@ function error(){
 	read_charge_operation
 	read_operation
 	exit 1
-}
-
-#######################################
-# Check if the script is called using sudo.
-# Globals:
-#   None
-# Arguments:
-#   None
-# Outputs:
-#   None
-#######################################
-function check_sudo(){
-	if (( $(id -u) != 0 )); then
-		error 10
-	fi;
 }
 
 #######################################
@@ -386,7 +371,6 @@ function read_charge_operation(){
 
 # ----------------------------------------------------------------
 
-check_sudo
 setup
 
 
