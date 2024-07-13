@@ -45,13 +45,8 @@ To install `ig3mngr` you only need to download the script, put it in a directory
 ```
 ## Sudo
 
-Since this requires sudo always , the dumb way to make it easier to use, is add the following line to your sudoers file
-
-```sh
-sudo visudo
-##add the next line to the end of the file
-$USER ALL=(ALL) NOPASSWD: /path/to/ig3mngr
-```
+Since this requires sudo:
+You will be asked for a password when runnng this script that should elevate your privillges on the terminal until the timeout.
 
 ## Contributing
 `ig3mngr` seem to be working fine on the supported device, but only because ACPI calls values are publicly known.
