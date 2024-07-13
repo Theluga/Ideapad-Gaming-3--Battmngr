@@ -1,5 +1,5 @@
 # ig3mngr
-![made for ideapad Gaming 3](https://img.shields.io/badge/made%20for-ideapad%20Gaming%203-blue) ![license](https://img.shields.io/github/license/Theluga/Ideapad-Gaming-3--Battmngr) 
+![made for ideapad Gaming 3](https://img.shields.io/badge/made%20for-ideapad%20Gaming%203-blue) ![license](https://img.shields.io/github/license/Theluga/Ideapad-Gaming-3-Battmngr) 
 
 Battery manager to handle system performance modes and charge modes through acpi_calls (for Ideapad Gaming 3 15ACH6). 
 
